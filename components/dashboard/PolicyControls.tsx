@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useDelegation } from '@/hooks/useDelegation';
 import { useAgentWallet } from '@/hooks/useAgentWallet';
+import { useLocus } from '@/hooks/useLocus';
 import { WalletInput } from '@/components/ui/WalletInput';
 
 // Ghostify agent wallet — the EOA that executes transactions
@@ -56,6 +57,7 @@ function SliderRow({ label, value, min, max, unit, color, onChange }: SliderRowP
 export default function PolicyControls() {
   const { address } = useAgentWallet();
   const { createDelegation, revokeDelegation, getStoredDelegation, isCreating, error } = useDelegation();
+  const { transactions } = useLocus();
 
   const [dailyLimitEth, setDailyLimitEth] = useState(0.1);
   const [durationDays, setDurationDays] = useState(1);
@@ -63,7 +65,10 @@ export default function PolicyControls() {
   const [approvedAddresses, setApprovedAddresses] = useState<`0x${string}`[]>([]);
   const [delegation, setDelegationState] = useState<any>(null);
 
-  const spent = 247.80;
+  // Real spend today from Locus history
+  const spent = transactions
+    .filter((tx) => new Date(tx.created_at ?? '').toDateString() === new Date().toDateString())
+    .reduce((sum, tx) => sum + parseFloat(tx.amount_usdc ?? '0'), 0);
   const spentPct = (spent / (dailyLimitEth * 3500)) * 100; // approx ETH→USD
 
   useEffect(() => {

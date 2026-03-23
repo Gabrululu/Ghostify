@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAgent } from '@/hooks/useAgent'
 import { useAgentWallet } from '@/hooks/useAgentWallet'
+import { useLocus } from '@/hooks/useLocus'
 
 interface PaymentResult {
   transactionId: string
@@ -16,22 +17,43 @@ interface PaymentResult {
 export function AgentBrain() {
   const { think, isThinking, lastDecision, log } = useAgent()
   const { usdcBalance } = useAgentWallet()
+  const { transactions } = useLocus()
   const [task, setTask] = useState('')
   const [lastPayment, setLastPayment] = useState<PaymentResult | null>(null)
+  const [dailyLimit, setDailyLimit] = useState(400)
 
-  const [policies] = useState({
-    dailyLimit: 400,
-    spentToday: 247.80,
-    approvedWallets: [],
-    timeWindow: { start: '00:00', end: '23:59' },
-  })
+  useEffect(() => {
+    const stored = localStorage.getItem('ghostify_delegation')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (parsed.policies?.dailyLimitEth) {
+          setDailyLimit(Math.round(parsed.policies.dailyLimitEth * 3500))
+        }
+      } catch {}
+    }
+  }, [])
+
+  const spentToday = transactions
+    .filter((tx) => new Date(tx.created_at ?? '').toDateString() === new Date().toDateString())
+    .reduce((sum, tx) => sum + parseFloat(tx.amount_usdc ?? '0'), 0)
+
+  const approvedWallets: string[] = (() => {
+    try {
+      const stored = localStorage.getItem('ghostify_delegation')
+      return stored ? JSON.parse(stored).policies?.approvedAddresses ?? [] : []
+    } catch { return [] }
+  })()
 
   const handleThink = async () => {
     if (!task.trim()) return
     const decision = await think({
       task,
       usdcBalance,
-      ...policies,
+      dailyLimit,
+      spentToday,
+      approvedWallets,
+      timeWindow: { start: '00:00', end: '23:59' },
       recentActions: log.slice(0, 3).map(e => ({
         action: e.action,
         amount: e.amount_usd ?? 0,
