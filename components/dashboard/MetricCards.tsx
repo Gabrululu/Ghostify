@@ -1,44 +1,97 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-const metrics = [
-  {
-    label: 'Total Spent Today',
-    value: '$247.80',
-    sub: 'of $400.00 daily limit',
-    percent: 61.95,
-    color: '#7effd4',
-    tag: 'SPENDING',
-    trend: '+$18.40 last hour',
-  },
-  {
-    label: 'Transactions',
-    value: '34',
-    sub: '28 approved · 6 private',
-    percent: 82,
-    color: '#a78bfa',
-    tag: 'ACTIVITY',
-    trend: '5 in last 30 min',
-  },
-  {
-    label: 'Identity Status',
-    value: 'ghost.eth',
-    sub: 'ERC-8004 · ZK Verified',
-    percent: 100,
-    color: '#f472b6',
-    tag: 'IDENTITY',
-    trend: 'Self Protocol ✓',
-  },
-];
+import { useLocus } from '@/hooks/useLocus';
+import { useAgentWallet } from '@/hooks/useAgentWallet';
 
 export default function MetricCards() {
   const [visible, setVisible] = useState(false);
+  const { balance, transactions } = useLocus();
+  const { displayName, isConnected } = useAgentWallet();
+
+  // Read delegation policy from localStorage
+  const [dailyLimit, setDailyLimit] = useState<number | null>(null);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [isZKVerified, setIsZKVerified] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 100);
+
+    const delegation = localStorage.getItem('ghostify_delegation');
+    if (delegation) {
+      try {
+        const parsed = JSON.parse(delegation);
+        setDailyLimit(parsed.policies?.dailyLimitEth ?? null);
+      } catch {}
+    }
+
+    const agent = localStorage.getItem('ghostify_agent');
+    setIsRegistered(!!agent);
+
+    const zk = localStorage.getItem('ghostify_zk_verified');
+    setIsZKVerified(!!zk);
+
     return () => clearTimeout(t);
   }, []);
+
+  // Metrics computed from real data
+  const spentToday = transactions
+    .filter((tx) => {
+      const txDate = new Date(tx.created_at ?? '').toDateString();
+      return txDate === new Date().toDateString();
+    })
+    .reduce((sum, tx) => sum + parseFloat(tx.amount_usdc ?? '0'), 0);
+
+  const limitUSD = dailyLimit ? dailyLimit * 3000 : null; // rough ETH→USD for display
+  const spendPercent = limitUSD && limitUSD > 0 ? Math.min((spentToday / limitUSD) * 100, 100) : 0;
+
+  const txCount = transactions.length;
+  const txApproved = transactions.filter((tx) => tx.status === 'QUEUED' || tx.status === 'SENT').length;
+
+  const identityStatus = !isConnected
+    ? '—'
+    : displayName ?? '—';
+
+  const identitySubtitle = [
+    isRegistered ? 'ERC-8004' : null,
+    isZKVerified ? 'ZK Verified' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ') || (isConnected ? 'Not registered' : 'Connect wallet');
+
+  const metrics = [
+    {
+      label: 'Locus Balance',
+      value: balance !== null ? `$${balance.toFixed(2)}` : isConnected ? 'Loading...' : '—',
+      sub: limitUSD
+        ? `$${spentToday.toFixed(2)} spent · $${limitUSD.toFixed(0)} limit`
+        : dailyLimit
+        ? `${dailyLimit} ETH/day policy set`
+        : 'No policy set yet',
+      percent: spendPercent,
+      color: '#7effd4',
+      tag: 'BALANCE',
+      trend: balance !== null ? 'USDC · Base Mainnet' : 'Locus Protocol',
+    },
+    {
+      label: 'Transactions',
+      value: txCount > 0 ? String(txCount) : isConnected ? '0' : '—',
+      sub: txApproved > 0 ? `${txApproved} executed via Locus` : 'No transactions yet',
+      percent: txCount > 0 ? Math.min((txApproved / txCount) * 100, 100) : 0,
+      color: '#a78bfa',
+      tag: 'ACTIVITY',
+      trend: txCount > 0 ? `Last: ${new Date(transactions[0]?.created_at ?? '').toLocaleDateString()}` : 'Venice → Locus',
+    },
+    {
+      label: 'Identity Status',
+      value: identityStatus,
+      sub: identitySubtitle,
+      percent: isRegistered && isZKVerified ? 100 : isRegistered ? 60 : isConnected ? 20 : 0,
+      color: '#f472b6',
+      tag: 'IDENTITY',
+      trend: isZKVerified ? 'Self Protocol ✓' : isRegistered ? 'ERC-8004 Active' : 'Register to activate',
+    },
+  ];
 
   return (
     <div
