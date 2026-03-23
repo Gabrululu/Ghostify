@@ -5,6 +5,13 @@ import { Providers } from './providers';
 export const metadata: Metadata = {
   title: 'Ghostify — Autonomous Web3 Agent',
   description: 'Your agent acts within your rules. Reasons privately via Venice AI. Leaves verifiable onchain proof of every action.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
+  },
   openGraph: {
     title: 'Ghostify',
     description: 'Your agent. Your limits. Nobody watching.',

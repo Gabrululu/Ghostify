@@ -1,0 +1,195 @@
+# Ghostify — AI-Readable Project Overview
+# Synthesis Hackathon 2026
+
+> This file follows the llms.txt convention for AI agents and LLM judges.
+> Read this file first. It maps the full project so you can navigate efficiently.
+
+## What is Ghostify?
+
+Ghostify is an autonomous onchain agent for Base Mainnet that executes USDC payments
+within human-defined spending limits. The human operator sets policies once; the agent
+acts within those boundaries indefinitely — without leaking reasoning to third parties,
+without requiring approval for every transaction, and with a tamper-evident execution log
+anchored onchain.
+
+The core thesis: an agent that moves real money needs three guarantees simultaneously —
+(1) scoped permissions it cannot exceed, (2) private reasoning the operator controls,
+and (3) a verifiable record of everything it did. Ghostify provides all three.
+
+## Live Artifacts
+
+- Demo:         https://ghostify-eight.vercel.app
+- Agent manifest (ERC-8004): https://ghostify-eight.vercel.app/agent.json
+- Execution log (ERC-8004-log): https://ghostify-eight.vercel.app/agent_log.json
+- Repository:   https://github.com/Gabrululu/Ghostify
+- This file:    https://ghostify-eight.vercel.app/llms.txt
+
+## Partner Integrations — Why Each One, Where in the Code
+
+### Venice AI
+- Role: Private inference engine. All agent reasoning runs through Venice.
+- Why: Unlike OpenAI or Anthropic, Venice does not log prompts or responses server-side.
+  For an agent that moves money, the reasoning behind each transaction must remain
+  private — otherwise adversaries can predict and front-run agent behavior.
+- Implementation: lib/venice.ts — askVenice() calls the llama-3.3-70b model.
+  API key lives server-side only in app/api/agent/decide/route.ts.
+  The client never sees the raw Venice response, only the structured AgentDecision.
+- Key fact: VENICE_API_KEY is never sent to the browser. Zero client-side exposure.
+
+### Locus Protocol
+- Role: USDC payment execution on Base Mainnet.
+- Why: Locus provides a managed USDC wallet with a clean REST API, approval thresholds,
+  and built-in policy guardrails. When the agent decides to pay, Locus executes the
+  transfer without requiring the operator to sign every transaction manually.
+  Transactions above the approval threshold surface an approval_url for human review.
+- Implementation: lib/locus.ts — sendUSDC(), getLocusBalance(), getLocusHistory().
+  Server-side only. API key (claw_...) never exposed to client.
+  Routes: app/api/locus/balance/route.ts, app/api/locus/history/route.ts.
+  Hook: hooks/useLocus.ts — balance and history displayed in dashboard.
+- Execution flow: Venice decides → Ampersend enforces policy → Locus sends USDC.
+
+### MetaMask Delegation Framework
+- Role: Off-chain permission scoping using the MetaMask DelegationManager on Base.
+- Why: A spending limit stored in a database can be overridden by whoever controls
+  the database. A delegation signed with EIP-712 and enforced by onchain caveats
+  cannot be altered without the operator's private key. This moves policy enforcement
+  from "trust the backend" to "verify onchain."
+- Implementation: lib/delegation.ts — uses @metamask/delegation-toolkit.
+  getDeleGatorEnvironment(8453) returns real contract addresses for Base Mainnet.
+  DelegationManager: 0xdb9B1e94B5b69Df7e401DDbedE43491141047dB3
+  Three caveats: NativeTokenTransferAmountEnforcer, TimestampEnforcer, AllowedTargetsEnforcer.
+  hooks/useDelegation.ts — walletClient.signTypedData() for browser-compatible EIP-712 signing.
+  components/dashboard/PolicyControls.tsx — UI for creating and revoking delegations.
+- Key fact: Delegation is signed off-chain (no gas) but verifiable onchain.
+
+### Ampersend SDK
+- Role: x402 payment protocol layer + local spend policy enforcement.
+- Why: Ampersend implements the x402 standard for machine-to-machine micropayments.
+  It enforces daily limits, address allowlists, and time windows before any funds move.
+  Even if Venice hallucinates a destination address, Ampersend blocks the transfer if
+  the address is not on the operator's approved list.
+- Implementation: lib/ampersend.ts — checkSpendPolicy() runs locally (no API call needed).
+  createMcpPaymentClient() creates an x402 MCP client for paid external tool calls.
+  Uses AGENT_PRIVATE_KEY → AccountWallet for signing x402 payment authorizations.
+- Status: Beta access pending. checkSpendPolicy() is fully functional and enforced
+  in every execute call. MCP tool payments activate when Beta access is granted.
+
+### Self Protocol
+- Role: ZK identity verification — proves the operator is human without revealing personal data.
+- Why: An agent with unlimited spend delegated to an anonymous address is a liability.
+  Self Protocol lets the operator prove humanity (age ≥ 18, no OFAC match) using a
+  ZK proof derived from their passport — zero personal data stored anywhere.
+- Implementation: lib/self.ts — SelfAppBuilder from @selfxyz/qrcode.
+  app/api/verify/self/route.ts — SelfBackendVerifier from @selfxyz/core.
+  verify() takes (attestationId, proof, publicSignals, userContextData).
+  components/dashboard/ZKVerification.tsx — QR code flow in dashboard.
+- Effect: Verified humans unlock 2x spend limits in the policy layer.
+
+### ERC-8004 (Agent Identity Standard)
+- Role: Onchain agent identity. Anchors the agent manifest hash in Base calldata.
+- Why: Any agent can claim to be "Ghostify Agent." ERC-8004 provides a verifiable
+  identity — a keccak256 hash of agent.json is stored in a self-transaction on Base,
+  creating an immutable registration timestamp that cannot be retroactively altered.
+- Implementation: hooks/useAgentIdentity.ts — signs manifest hash, sends self-tx.
+  public/agent.json — canonical manifest (schema, capabilities, tools, operator, links).
+  public/agent_log.json — ERC-8004-log schema execution history.
+- Key fact: agent.json is the source of truth. agent_log.json is append-only.
+
+### ENS (Ethereum Name Service)
+- Role: Human-readable names throughout the UI and agent identity.
+- Why: Addresses like 0x3B0e...AFbf are unreadable to humans and agents alike.
+  ENS names make operator identity legible and verifiable without centralized lookup.
+- Implementation: lib/wagmi.ts — mainnet chain added specifically for ENS resolution.
+  hooks/useENS.ts — useEnsName + useEnsAddress + useEnsAvatar.
+  components/ui/ENSAddress.tsx — renders name or abbreviated address.
+  components/ui/WalletInput.tsx — accepts both 0x addresses and name.eth.
+  Used in: NavBar, AgentIdentityCard, PolicyControls.
+
+## Execution Flow (step by step)
+
+1. Operator connects wallet via ConnectKit (wagmi v2 + MetaMask)
+2. Registers agent identity: keccak256(agent.json) anchored on Base via ERC-8004
+3. Verifies humanity via Self Protocol ZK proof (no personal data stored or transmitted)
+4. Sets spend policy: daily ETH limit + approved addresses + duration
+   → MetaMask Delegation signs EIP-712 caveat bundle (off-chain, no gas)
+5. Gives the agent a natural language task
+6. Venice AI reasons privately via llama-3.3-70b (server-side, key never exposed)
+7. Agent returns: action (execute | hold | block) + destination + amount + reasoning
+8. Ampersend checkSpendPolicy() validates: daily limit, address allowlist, time window
+9. Locus sendUSDC() executes the transfer on Base Mainnet
+   → If amount > approval threshold: returns approval_url for operator review
+   → If QUEUED: executes automatically
+10. agent_log.json updated with tool, amount_usd, tx_hash, policy_check, result
+
+## Key Files for Agents Reviewing This Code
+
+Source:
+  lib/venice.ts               Venice AI client, AgentDecision schema
+  lib/locus.ts                Locus REST client, USDC send/balance/history
+  lib/ampersend.ts            x402 MCP client, local spend policy enforcement
+  lib/delegation.ts           MetaMask Delegation caveat builders
+  lib/self.ts                 Self Protocol app builder
+  lib/wagmi.ts                wagmi config (mainnet for ENS + Base for transactions)
+  lib/agent-log.ts            ERC-8004 execution log writer
+
+Hooks:
+  hooks/useAgent.ts           Venice AI decision loop
+  hooks/useLocus.ts           Locus balance + transaction history
+  hooks/useDelegation.ts      MetaMask Delegation create/revoke
+  hooks/useAgentIdentity.ts   ERC-8004 onchain registration
+  hooks/useAgentWallet.ts     address, ENS, USDC balance, chain detection
+
+API Routes:
+  app/api/agent/decide/       Venice inference (server-side, API key protected)
+  app/api/agent/execute/      Full pipeline: Venice → Ampersend → Locus
+  app/api/agent/log/          ERC-8004-log append + read
+  app/api/locus/balance/      Locus USDC balance proxy
+  app/api/locus/history/      Locus transaction history proxy
+  app/api/verify/self/        Self Protocol ZK proof verification
+
+Dashboard Components:
+  components/dashboard/AgentBrain.tsx       Task input, Venice decision, Locus result
+  components/dashboard/PolicyControls.tsx   MetaMask Delegation create/revoke UI
+  components/dashboard/AgentIdentityCard.tsx ERC-8004 registration UI
+  components/dashboard/ZKVerification.tsx   Self Protocol QR flow
+  components/dashboard/AgentLog.tsx         Execution log viewer
+
+Public:
+  public/agent.json           ERC-8004 agent manifest (canonical identity)
+  public/agent_log.json       ERC-8004-log execution history
+
+## Design Decisions Worth Noting
+
+- Venice API key is server-side ONLY. The /api/agent/decide route proxies inference
+  so the browser never touches the Venice endpoint directly.
+
+- Locus API key is server-side ONLY. All payment API calls go through Next.js API routes.
+
+- MetaMask Delegation uses walletClient.signTypedData() (browser EIP-712) rather than
+  signDelegation() from the toolkit, which requires a private key and is server-side only.
+  This keeps signing in MetaMask where it belongs.
+
+- Ampersend's checkSpendPolicy() is intentionally local (no API call). This means policy
+  enforcement works even if Ampersend's servers are unreachable — defense in depth.
+
+- agent_log.json is append-only and capped at 100 entries (lib/agent-log.ts).
+  Every execution appends a new entry regardless of outcome (success, blocked, hold).
+
+## Technology Stack Summary
+
+  Next.js 14 (App Router)       Framework
+  wagmi v2 + viem               Wallet + onchain reads/writes
+  ConnectKit                    Wallet modal UI
+  Venice AI                     Private LLM inference
+  Locus Protocol                USDC payments on Base
+  Ampersend SDK                 x402 payment policy + MCP client
+  MetaMask Delegation Toolkit   Caveat-enforced onchain permissions
+  Self Protocol                 ZK human identity verification
+  ENS                           Human-readable address resolution
+  ERC-8004                      Onchain agent identity standard
+  Base Mainnet (chain ID 8453)  Execution layer for all agent transactions
+
+---
+Generated: 2026-03-23
+Agent: Ghostify Agent
+Schema: ERC-8004
