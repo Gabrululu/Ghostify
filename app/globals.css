@@ -1,0 +1,296 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@layer base {
+  :root {
+    --background: 230 70% 4%;
+    --foreground: 0 0% 96%;
+    --card: 230 50% 6%;
+    --card-foreground: 0 0% 96%;
+    --popover: 230 50% 6%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 160 100% 74%;
+    --primary-foreground: 230 70% 4%;
+    --secondary: 230 30% 12%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 230 30% 12%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 267 86% 75%;
+    --accent-foreground: 230 70% 4%;
+    --destructive: 330 81% 65%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 160 100% 74% / 0.12;
+    --input: 230 30% 12%;
+    --ring: 160 100% 74%;
+    --radius: 0rem;
+    --chart-1: 160 100% 74%;
+    --chart-2: 267 86% 75%;
+    --chart-3: 330 81% 65%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    cursor: crosshair;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #04060f;
+    color: rgba(255, 255, 255, 0.88);
+    font-family: 'Space Mono', monospace;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Unbounded', sans-serif;
+  }
+
+  ::selection {
+    background-color: rgba(126, 255, 212, 0.25);
+    color: #7effd4;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #04060f;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(126, 255, 212, 0.3);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(126, 255, 212, 0.6);
+  }
+}
+
+@layer utilities {
+  .ghost-border {
+    border: 1px solid rgba(126, 255, 212, 0.15);
+  }
+
+  .ghost-border-purple {
+    border: 1px solid rgba(167, 139, 250, 0.15);
+  }
+
+  .ghost-border-pink {
+    border: 1px solid rgba(244, 114, 182, 0.15);
+  }
+
+  .ghost-border-hover {
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .ghost-border-hover:hover {
+    border-color: rgba(126, 255, 212, 0.45);
+    background-color: rgba(126, 255, 212, 0.03);
+  }
+
+  .text-outline-mint {
+    -webkit-text-stroke: 1px #7effd4;
+    color: transparent;
+  }
+
+  .text-outline-purple {
+    -webkit-text-stroke: 1px #a78bfa;
+    color: transparent;
+  }
+
+  .text-outline-white {
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
+    color: transparent;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(126, 255, 212, 0.6);
+  }
+
+  .cta-primary {
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background-color: #7effd4;
+    color: #04060f;
+    border: 1px solid #7effd4;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .cta-primary:hover {
+    background-color: rgba(126, 255, 212, 0.85);
+  }
+
+  .cta-outline {
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background-color: transparent;
+    color: #7effd4;
+    border: 1px solid rgba(126, 255, 212, 0.5);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .cta-outline:hover {
+    border-color: #7effd4;
+    background-color: rgba(126, 255, 212, 0.05);
+  }
+
+  .step-number {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.04);
+    user-select: none;
+    pointer-events: none;
+    position: absolute;
+    top: -1rem;
+    left: -0.5rem;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ticker-wrap {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ticker-track {
+    display: inline-flex;
+    animation: ticker 28s linear infinite;
+  }
+}
+
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33%       { transform: translate(60px, -40px) scale(1.1); }
+  66%       { transform: translate(-30px, 50px) scale(0.95); }
+}
+
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  40%       { transform: translate(-50px, 60px) scale(1.05); }
+  70%       { transform: translate(40px, -30px) scale(0.9); }
+}
+
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50%       { transform: translate(30px, 40px) scale(1.08); }
+}
+
+@keyframes fade-up {
+  0%   { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+@layer utilities {
+  .slider-thumb::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #7effd4;
+    cursor: crosshair;
+    border: none;
+  }
+
+  .slider-thumb::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #7effd4;
+    cursor: crosshair;
+    border: none;
+    border-radius: 0;
+  }
+
+  .slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 2px;
+    background: rgba(126, 255, 212, 0.2);
+    outline: none;
+    cursor: crosshair;
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: crosshair;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(126, 255, 212, 0.2);
+    transition: 0.3s;
+  }
+
+  .toggle-slider:before {
+    position: absolute;
+    content: '';
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: rgba(255, 255, 255, 0.4);
+    transition: 0.3s;
+  }
+
+  input:checked + .toggle-slider {
+    background-color: rgba(126, 255, 212, 0.15);
+    border-color: #7effd4;
+  }
+
+  input:checked + .toggle-slider:before {
+    transform: translateX(18px);
+    background-color: #7effd4;
+  }
+}
