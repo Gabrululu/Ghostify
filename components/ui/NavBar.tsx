@@ -90,7 +90,7 @@ export default function NavBar() {
           {[
             { label: 'How it works', href: '/#how-it-works' },
             { label: 'Stack', href: '/#stack' },
-            { label: 'Docs', href: '#' },
+            { label: 'Docs', href: '/llms.txt' },
           ].map((link) => (
             <Link
               key={link.label}
