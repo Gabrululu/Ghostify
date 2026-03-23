@@ -15,9 +15,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Ghostify',
     description: 'Your agent. Your limits. Nobody watching.',
+    images: ['https://i.postimg.cc/fwwWNtQM/Captura-de-pantalla-2026-03-22-230624.png'],
   },
   twitter: {
     card: 'summary_large_image',
+    images: ['https://i.postimg.cc/fwwWNtQM/Captura-de-pantalla-2026-03-22-230624.png'],
   },
 };
 
