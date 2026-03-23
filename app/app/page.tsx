@@ -5,11 +5,15 @@ import MetricCards from '@/components/dashboard/MetricCards';
 import PolicyControls from '@/components/dashboard/PolicyControls';
 import AgentLog from '@/components/dashboard/AgentLog';
 import AgentIdentityCard from '@/components/dashboard/AgentIdentityCard';
+import { AgentBrain } from '@/components/dashboard/AgentBrain';
+import { ZKVerification } from '@/components/dashboard/ZKVerification';
 import { useAgentWallet } from '@/hooks/useAgentWallet';
+import { useLocus } from '@/hooks/useLocus';
 import { ConnectKitButton } from 'connectkit';
 
 export default function AppDashboard() {
   const { isConnected, displayName, usdcBalance, isOnBase } = useAgentWallet();
+  const { transactions } = useLocus();
 
   return (
     <div style={{ backgroundColor: '#04060f', minHeight: '100vh' }}>
@@ -168,6 +172,11 @@ export default function AppDashboard() {
 
         <MetricCards />
 
+        {/* Agent Brain — Venice AI task input */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AgentBrain />
+        </div>
+
         <div
           style={{
             display: 'grid',
@@ -180,8 +189,19 @@ export default function AppDashboard() {
           <PolicyControls />
         </div>
 
-        <AgentIdentityCard />
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) 360px',
+            gap: '1.5rem',
+            marginBottom: '1.5rem',
+          }}
+        >
+          <AgentIdentityCard />
+          <ZKVerification />
+        </div>
 
+        {/* Real stats from Locus */}
         <div
           style={{
             marginTop: '1.5rem',
@@ -194,12 +214,26 @@ export default function AppDashboard() {
           }}
         >
           {[
-            { label: 'Total Tx (All Time)', value: '1,847', color: '#7effd4' },
-            { label: 'Approved', value: '1,624', color: '#7effd4' },
-            { label: 'Private Inference', value: '189', color: '#a78bfa' },
-            { label: 'Blocked', value: '34', color: '#f472b6' },
-            { label: 'Total Volume', value: '$48.2K', color: '#7effd4' },
-            { label: 'ZK Proofs Issued', value: '312', color: '#a78bfa' },
+            {
+              label: 'Total Tx',
+              value: transactions.length > 0 ? String(transactions.length) : '0',
+              color: '#7effd4',
+            },
+            {
+              label: 'Executed',
+              value: String(transactions.filter(t => t.status === 'QUEUED' || t.status === 'SENT').length),
+              color: '#7effd4',
+            },
+            {
+              label: 'Pending Approval',
+              value: String(transactions.filter(t => t.status === 'PENDING_APPROVAL').length),
+              color: '#a78bfa',
+            },
+            {
+              label: 'Total Volume',
+              value: `$${transactions.reduce((s, t) => s + parseFloat(t.amount_usdc ?? '0'), 0).toFixed(2)}`,
+              color: '#7effd4',
+            },
           ].map((stat) => (
             <div key={stat.label}>
               <div

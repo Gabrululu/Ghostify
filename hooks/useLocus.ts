@@ -12,11 +12,14 @@ export function useLocus() {
   const fetchBalance = useCallback(async () => {
     try {
       const res = await fetch('/api/locus/balance')
-      if (!res.ok) return
+      if (!res.ok) {
+        setBalance(0)
+        return
+      }
       const data = await res.json()
-      setBalance(data.balance)
+      setBalance(data.balance ?? 0)
     } catch {
-      // silent — Locus key may not be configured yet
+      setBalance(0)
     }
   }, [])
 
