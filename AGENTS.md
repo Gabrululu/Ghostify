@@ -120,10 +120,10 @@ OUTPUT: executed payment OR block reason OR human approval URL
 ## Live URLs for verification
 
 ```
-https://ghostify-eight.vercel.app/                   Running app
-https://ghostify-eight.vercel.app/agent.json          ERC-8004 manifest
-https://ghostify-eight.vercel.app/agent_log.json      Execution log
-https://ghostify-eight.vercel.app/llms.txt            Extended AI-readable docs
+https://ghostify-agent.vercel.app/                   Running app
+https://ghostify-agent.vercel.app/agent.json          ERC-8004 manifest
+https://ghostify-agent.vercel.app/agent_log.json      Execution log
+https://ghostify-agent.vercel.app/llms.txt            Extended AI-readable docs
 https://github.com/Gabrululu/Ghostify                 Source code
 ```
 

@@ -42,9 +42,9 @@ export function useAgentIdentity() {
           max_single_tx_usd: 100,
         },
         links: {
-          repository: 'https://github.com/TU_USUARIO/ghostwallet',
-          manifest: 'https://TU_DOMINIO/agent.json',
-          log: 'https://TU_DOMINIO/agent_log.json',
+          repository: 'https://github.com/TU_USUARIO/ghostify',
+          manifest: 'https://ghostify-agent.vercel.app/agent.json',
+          log: 'https://ghostify-agent.vercel.app/agent_log.json',
         },
         created_at: new Date().toISOString(),
       }
@@ -55,7 +55,7 @@ export function useAgentIdentity() {
 
       // 3. Firmar el hash — prueba de que el operador es el dueño de la wallet
       const signature = await walletClient.signMessage({
-        message: `GhostWallet Agent Registration\nManifest Hash: ${manifestHash}\nOperator: ${address}`,
+        message: `Ghostify Agent Registration\nManifest Hash: ${manifestHash}\nOperator: ${address}`,
       })
 
       // 4. Self-tx con el hash en calldata — artefacto onchain sin necesitar contrato propio
@@ -72,7 +72,7 @@ export function useAgentIdentity() {
 
       // 6. Persistir en localStorage para el dashboard
       const fullManifest = { ...manifest, txHash: hash, signature }
-      localStorage.setItem('ghostwallet_agent', JSON.stringify(fullManifest))
+      localStorage.setItem('ghostify_agent', JSON.stringify(fullManifest))
 
       return { txHash: hash, manifest: fullManifest }
     } catch (err: unknown) {
@@ -85,7 +85,7 @@ export function useAgentIdentity() {
 
   const getStoredAgent = (): Record<string, unknown> | null => {
     if (typeof window === 'undefined') return null
-    const stored = localStorage.getItem('ghostwallet_agent')
+    const stored = localStorage.getItem('ghostify_agent')
     return stored ? JSON.parse(stored) : null
   }
 

@@ -29,9 +29,9 @@ Three layers working together:
 
 ## Live demo
 
-🌐 https://ghostify-eight.vercel.app
-🤖 Agent manifest: https://ghostify-eight.vercel.app/agent.json
-📋 Execution log: https://ghostify-eight.vercel.app/agent_log.json
+- 🌐 https://ghostify-agent.vercel.app
+- 🤖 Agent manifest: https://ghostify-agent.vercel.app/agent.json
+- 📋 Execution log: https://ghostify-agent.vercel.app/agent_log.json
 
 ---
 

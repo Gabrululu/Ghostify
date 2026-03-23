@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { Ghost } from 'lucide-react';
 
 const linkStyle = {
@@ -87,7 +86,7 @@ export default function Footer() {
           <div>
             <div className="section-label" style={{ marginBottom: '1.25rem' }}>Community</div>
             <FooterLink href="https://github.com/Gabrululu/Ghostify" label="GitHub ↗" external />
-            <FooterLink href="https://ghostify-eight.vercel.app" label="Live Demo ↗" external />
+            <FooterLink href="https://ghostify-agent.vercel.app" label="Live Demo ↗" external />
           </div>
         </div>
 

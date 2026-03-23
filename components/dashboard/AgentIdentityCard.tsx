@@ -12,7 +12,7 @@ export default function AgentIdentityCard() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('ghostwallet_agent');
+    const stored = localStorage.getItem('ghostify_agent');
     if (stored) setAgent(JSON.parse(stored));
   }, [txHash]);
 

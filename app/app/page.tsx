@@ -5,7 +5,6 @@ import MetricCards from '@/components/dashboard/MetricCards';
 import PolicyControls from '@/components/dashboard/PolicyControls';
 import AgentLog from '@/components/dashboard/AgentLog';
 import AgentIdentityCard from '@/components/dashboard/AgentIdentityCard';
-import { chaosCasing } from '@/lib/chaos';
 import { useAgentWallet } from '@/hooks/useAgentWallet';
 import { ConnectKitButton } from 'connectkit';
 
@@ -35,7 +34,7 @@ export default function AppDashboard() {
         >
           <div>
             <div className="section-label" style={{ marginBottom: '0.4rem' }}>
-              Agent Control Panel
+              Ghostify
             </div>
             <h1
               style={{
@@ -47,8 +46,7 @@ export default function AppDashboard() {
                 color: '#fff',
               }}
             >
-              {chaosCasing('Ghost')}
-              <span style={{ color: '#7effd4' }}>{chaosCasing('Wallet')}</span>
+              Ghostify
             </h1>
             <div
               style={{

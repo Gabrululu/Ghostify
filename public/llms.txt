@@ -18,11 +18,11 @@ and (3) a verifiable record of everything it did. Ghostify provides all three.
 
 ## Live Artifacts
 
-- Demo:         https://ghostify-eight.vercel.app
-- Agent manifest (ERC-8004): https://ghostify-eight.vercel.app/agent.json
-- Execution log (ERC-8004-log): https://ghostify-eight.vercel.app/agent_log.json
+- Demo:         https://ghostify-agent.vercel.app
+- Agent manifest (ERC-8004): https://ghostify-agent.vercel.app/agent.json
+- Execution log (ERC-8004-log): https://ghostify-agent.vercel.app/agent_log.json
 - Repository:   https://github.com/Gabrululu/Ghostify
-- This file:    https://ghostify-eight.vercel.app/llms.txt
+- This file:    https://ghostify-agent.vercel.app/llms.txt
 
 ## Partner Integrations — Why Each One, Where in the Code
 
