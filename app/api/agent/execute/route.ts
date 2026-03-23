@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { askVenice } from '@/lib/venice'
 import { checkSpendPolicy, type SpendPolicy } from '@/lib/ampersend'
+import { sendUSDC, submitLocusFeedback } from '@/lib/locus'
 import { appendToAgentLog } from '@/lib/agent-log'
 
 export async function POST(req: NextRequest) {
@@ -17,10 +18,12 @@ export async function POST(req: NextRequest) {
       policy: SpendPolicy
     }
 
-    const apiKey = process.env.VENICE_API_KEY
-    if (!apiKey) {
+    const veniceKey = process.env.VENICE_API_KEY
+    if (!veniceKey) {
       return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
     }
+
+    const locusKey = process.env.LOCUS_API_KEY
 
     // 1. Venice decides (private inference)
     const decision = await askVenice(
@@ -33,7 +36,7 @@ export async function POST(req: NextRequest) {
         timeWindow: context.timeWindow,
         recentActions: context.recentActions,
       },
-      apiKey
+      veniceKey
     )
 
     // 2. If Venice says hold/block — log and return immediately
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // 3. Local policy enforcement (Ampersend spend policy layer)
+    // 3. Ampersend local policy enforcement
     if (decision.destination && decision.amount) {
       const policyCheck = checkSpendPolicy(
         policy,
@@ -87,12 +90,80 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4. Policy passed — return unsigned tx params for frontend to sign via wagmi
+    // 4. Locus executes the USDC payment on Base
+    if (locusKey && decision.destination && decision.amount) {
+      try {
+        const payment = await sendUSDC(
+          {
+            to_address: decision.destination,
+            amount: decision.amount,
+            memo: task,
+          },
+          locusKey
+        )
+
+        const isPendingApproval = payment.status === 'PENDING_APPROVAL'
+
+        await appendToAgentLog({
+          action: task,
+          tool: 'locus_usdc',
+          amount_usd: payment.amount,
+          tx_hash: null, // Locus sends async — tx_hash arrives later via status poll
+          policy_check: 'passed',
+          private_inference: true,
+          result: isPendingApproval ? 'pending_approval' : 'queued',
+          reasoning: decision.reasoning,
+        })
+
+        return NextResponse.json({
+          executed: true,
+          decision,
+          payment: {
+            transactionId: payment.transaction_id,
+            status: payment.status,
+            amountUsd: payment.amount,
+            toAddress: payment.to_address,
+            // If human approval needed, surface the approval URL
+            approvalUrl: payment.approval_url ?? null,
+            pendingApproval: isPendingApproval,
+          },
+        })
+      } catch (locusErr: unknown) {
+        const message = locusErr instanceof Error ? locusErr.message : 'Locus error'
+        // Report error to Locus feedback
+        if (locusKey) {
+          await submitLocusFeedback(
+            {
+              category: 'error',
+              endpoint: '/api/pay/send',
+              message,
+              context: { task, amount: decision.amount },
+              source: 'error',
+            },
+            locusKey
+          )
+        }
+        // Fall through to pendingSignature if Locus unavailable
+        await appendToAgentLog({
+          action: task,
+          tool: decision.tool,
+          amount_usd: decision.amount,
+          tx_hash: null,
+          policy_check: 'passed',
+          private_inference: true,
+          result: 'locus_error',
+          reasoning: `Locus unavailable: ${message}`,
+        })
+        return NextResponse.json({ executed: false, decision, locusError: message }, { status: 500 })
+      }
+    }
+
+    // 5. No Locus key configured — log approval and return tx params for manual signing
     await appendToAgentLog({
       action: task,
       tool: decision.tool,
       amount_usd: decision.amount,
-      tx_hash: null, // filled in by frontend after wallet signs
+      tx_hash: null,
       policy_check: 'passed',
       private_inference: true,
       result: 'pending_signature',
@@ -104,11 +175,7 @@ export async function POST(req: NextRequest) {
       pendingSignature: true,
       decision,
       tx: decision.destination && decision.amount
-        ? {
-            to: decision.destination,
-            amountUsd: decision.amount,
-            tool: decision.tool,
-          }
+        ? { to: decision.destination, amountUsd: decision.amount, tool: decision.tool }
         : null,
     })
 

@@ -1,35 +1,43 @@
 {
   "schema": "ERC-8004",
   "version": "1.0.0",
-  "name": "GhostWallet Agent",
+  "name": "Ghostify Agent",
   "description": "Autonomous agent that executes onchain transactions within human-defined spending limits, with private reasoning via Venice AI and ZK identity via Self Protocol.",
   "operator": {
-    "address": "",
-    "ens": ""
+    "address": "PENDIENTE_TU_WALLET_ADDRESS",
+    "ens": "PENDIENTE_TU_ENS.eth"
   },
   "capabilities": [
     "onchain_payments",
     "private_inference",
     "spend_policy_enforcement",
-    "zk_identity_verification"
+    "zk_identity_verification",
+    "usdc_transfers"
   ],
   "tools": [
     "venice_ai",
     "ampersend_sdk",
-    "locus_usdc",
     "self_protocol_zk",
-    "ens_resolution"
+    "ens_resolution",
+    "locus_usdc"
   ],
   "safety": {
     "spend_limit_enforced": true,
     "human_in_the_loop": true,
     "max_single_tx_usd": 100,
-    "blocked_on_policy_violation": true
+    "blocked_on_policy_violation": true,
+    "zk_human_verification": true
+  },
+  "onchain": {
+    "network": "base-mainnet",
+    "registration_tx": "PENDIENTE_TX_HASH_REGISTRO_ERC8004",
+    "chain_id": 8453
   },
   "links": {
-    "repository": "https://github.com/TU_USUARIO/ghostwallet",
-    "manifest": "https://TU_DOMINIO/agent.json",
-    "log": "https://TU_DOMINIO/agent_log.json"
+    "repository": "https://github.com/Gabrululu/Ghostify",
+    "demo": "https://ghostify-eight.vercel.app",
+    "manifest": "https://ghostify-eight.vercel.app/agent.json",
+    "log": "https://ghostify-eight.vercel.app/agent_log.json"
   },
-  "created_at": ""
+  "created_at": "2026-03-23T00:00:00Z"
 }

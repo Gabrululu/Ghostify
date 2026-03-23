@@ -4,10 +4,20 @@ import { useState } from 'react'
 import { useAgent } from '@/hooks/useAgent'
 import { useAgentWallet } from '@/hooks/useAgentWallet'
 
+interface PaymentResult {
+  transactionId: string
+  status: string
+  amountUsd: number
+  toAddress: string
+  approvalUrl?: string | null
+  pendingApproval?: boolean
+}
+
 export function AgentBrain() {
   const { think, isThinking, lastDecision, log } = useAgent()
   const { usdcBalance } = useAgentWallet()
   const [task, setTask] = useState('')
+  const [lastPayment, setLastPayment] = useState<PaymentResult | null>(null)
 
   const [policies] = useState({
     dailyLimit: 400,
@@ -18,7 +28,7 @@ export function AgentBrain() {
 
   const handleThink = async () => {
     if (!task.trim()) return
-    await think({
+    const decision = await think({
       task,
       usdcBalance,
       ...policies,
@@ -28,6 +38,10 @@ export function AgentBrain() {
         timestamp: e.timestamp,
       })),
     })
+    // If Venice returns an executed payment result, surface it
+    if ((decision as any)?.payment) {
+      setLastPayment((decision as any).payment)
+    }
     setTask('')
   }
 
@@ -46,7 +60,7 @@ export function AgentBrain() {
   return (
     <div className="agent-brain">
 
-      {/* Input de tarea */}
+      {/* Task input */}
       <div className="task-input-section">
         <span className="section-tag">[Venice AI] Private Inference</span>
         <div className="task-row">
@@ -72,7 +86,7 @@ export function AgentBrain() {
         </p>
       </div>
 
-      {/* Última decisión */}
+      {/* Last decision */}
       {lastDecision && (
         <div className={`decision-card decision-${lastDecision.action}`}>
           <div className="decision-header">
@@ -90,7 +104,45 @@ export function AgentBrain() {
         </div>
       )}
 
-      {/* Log de ejecuciones */}
+      {/* Locus payment result */}
+      {lastPayment && (
+        <div style={{
+          margin: '1rem 0',
+          padding: '1rem 1.25rem',
+          border: `1px solid ${lastPayment.pendingApproval ? 'rgba(167,139,250,0.25)' : 'rgba(126,255,212,0.2)'}`,
+          backgroundColor: lastPayment.pendingApproval ? 'rgba(167,139,250,0.04)' : 'rgba(126,255,212,0.04)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontFamily: 'Space Mono, monospace', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: lastPayment.pendingApproval ? '#a78bfa' : '#7effd4' }}>
+              {lastPayment.pendingApproval ? '[Locus] Awaiting your approval' : '[Locus] Payment queued'}
+            </span>
+            <span style={{ fontFamily: 'Space Mono, monospace', fontSize: '0.72rem', fontWeight: 700, color: lastPayment.pendingApproval ? '#a78bfa' : '#7effd4' }}>
+              ${lastPayment.amountUsd?.toFixed(2)} USDC
+            </span>
+          </div>
+          <div style={{ fontFamily: 'Space Mono, monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', marginBottom: lastPayment.approvalUrl ? '0.75rem' : '0' }}>
+            → {lastPayment.toAddress?.slice(0, 10)}...{lastPayment.toAddress?.slice(-6)} · {lastPayment.status}
+          </div>
+          {lastPayment.approvalUrl && (
+            <a
+              href={lastPayment.approvalUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: 'inline-block', fontFamily: 'Space Mono, monospace', fontSize: '0.65rem', color: '#a78bfa', textDecoration: 'none', border: '1px solid rgba(167,139,250,0.3)', padding: '0.4rem 0.8rem', marginBottom: '0.4rem' }}
+            >
+              Approve payment on Locus ↗
+            </a>
+          )}
+          <button
+            onClick={() => setLastPayment(null)}
+            style={{ display: 'block', fontFamily: 'Space Mono, monospace', fontSize: '0.55rem', color: 'rgba(255,255,255,0.25)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '0.3rem' }}
+          >
+            dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Execution log */}
       {log.length > 0 && (
         <div className="execution-log">
           <div className="log-title">Execution log</div>
