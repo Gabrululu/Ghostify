@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: 'Ghostify — Autonomous Web3 Agent',
@@ -7,11 +8,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Ghostify',
     description: 'Your agent. Your limits. Nobody watching.',
-    images: [{ url: 'https://bolt.new/static/og_default.png' }],
   },
   twitter: {
     card: 'summary_large_image',
-    images: [{ url: 'https://bolt.new/static/og_default.png' }],
   },
 };
 
@@ -30,7 +29,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

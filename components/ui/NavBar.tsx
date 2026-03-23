@@ -1,15 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Ghost } from 'lucide-react';
+import { ConnectKitButton } from 'connectkit';
 
 export default function NavBar() {
-  const pathname = usePathname();
-  const isApp = pathname?.startsWith('/app');
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -115,19 +112,27 @@ export default function NavBar() {
           ))}
         </div>
 
-        <Link href="/app" style={{ textDecoration: 'none' }}>
-          <button
-            className="cta-primary"
-            style={{
-              padding: '0.5rem 1.25rem',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              cursor: 'crosshair',
-            }}
-          >
-            {isApp ? 'Dashboard' : 'Launch App'}
-          </button>
-        </Link>
+        <ConnectKitButton.Custom>
+          {({ isConnected, isConnecting, show, address, ensName }) => (
+            <button
+              onClick={show}
+              className={isConnected ? 'cta-outline' : 'cta-primary'}
+              style={{
+                padding: '0.5rem 1.25rem',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                cursor: 'crosshair',
+                fontFamily: 'Space Mono, monospace',
+              }}
+            >
+              {isConnecting
+                ? 'Connecting...'
+                : isConnected
+                ? ensName ?? `${address?.slice(0, 6)}...${address?.slice(-4)}`
+                : 'Connect Wallet'}
+            </button>
+          )}
+        </ConnectKitButton.Custom>
       </div>
     </nav>
   );

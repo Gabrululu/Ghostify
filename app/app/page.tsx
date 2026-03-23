@@ -1,16 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
 import NavBar from '@/components/ui/NavBar';
 import MetricCards from '@/components/dashboard/MetricCards';
 import PolicyControls from '@/components/dashboard/PolicyControls';
 import AgentLog from '@/components/dashboard/AgentLog';
 import AgentIdentityCard from '@/components/dashboard/AgentIdentityCard';
 import { chaosCasing } from '@/lib/chaos';
+import { useAgentWallet } from '@/hooks/useAgentWallet';
+import { ConnectKitButton } from 'connectkit';
 
 export default function AppDashboard() {
-  const [connected, setConnected] = useState(false);
+  const { isConnected, displayName, usdcBalance, isOnBase } = useAgentWallet();
 
   return (
     <div style={{ backgroundColor: '#04060f', minHeight: '100vh' }}>
@@ -58,7 +58,7 @@ export default function AppDashboard() {
                 marginTop: '0.4rem',
               }}
             >
-              ghost.eth · Base Mainnet · ERC-8004
+              {displayName ?? 'Not connected'} · {isOnBase ? 'Base Mainnet' : 'Wrong Network'} · USDC {usdcBalance}
             </div>
           </div>
 
@@ -95,22 +95,31 @@ export default function AppDashboard() {
               </span>
             </div>
 
-            <button
-              onClick={() => setConnected((c) => !c)}
-              className={connected ? 'cta-outline' : 'cta-primary'}
-              style={{
-                padding: '0.5rem 1.25rem',
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                cursor: 'crosshair',
-              }}
-            >
-              {connected ? 'Disconnect Wallet' : 'Connect Wallet'}
-            </button>
+            <ConnectKitButton.Custom>
+              {({ isConnected, isConnecting, show, address, ensName }) => (
+                <button
+                  onClick={show}
+                  className={isConnected ? 'cta-outline' : 'cta-primary'}
+                  style={{
+                    padding: '0.5rem 1.25rem',
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    cursor: 'crosshair',
+                    fontFamily: 'Space Mono, monospace',
+                  }}
+                >
+                  {isConnecting
+                    ? 'Connecting...'
+                    : isConnected
+                    ? ensName ?? `${address?.slice(0, 6)}...${address?.slice(-4)}`
+                    : 'Connect Wallet'}
+                </button>
+              )}
+            </ConnectKitButton.Custom>
           </div>
         </div>
 
-        {!connected && (
+        {!isConnected && (
           <div
             style={{
               padding: '1rem 1.25rem',
@@ -136,22 +145,26 @@ export default function AppDashboard() {
                 Viewing demo data. Connect wallet to activate your agent.
               </span>
             </div>
-            <button
-              onClick={() => setConnected(true)}
-              style={{
-                fontFamily: 'Space Mono, monospace',
-                fontSize: '0.62rem',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: '#a78bfa',
-                backgroundColor: 'transparent',
-                border: '1px solid rgba(167,139,250,0.4)',
-                padding: '0.3rem 0.8rem',
-                cursor: 'crosshair',
-              }}
-            >
-              Connect MetaMask
-            </button>
+            <ConnectKitButton.Custom>
+              {({ show }) => (
+                <button
+                  onClick={show}
+                  style={{
+                    fontFamily: 'Space Mono, monospace',
+                    fontSize: '0.62rem',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: '#a78bfa',
+                    backgroundColor: 'transparent',
+                    border: '1px solid rgba(167,139,250,0.4)',
+                    padding: '0.3rem 0.8rem',
+                    cursor: 'crosshair',
+                  }}
+                >
+                  Connect Wallet
+                </button>
+              )}
+            </ConnectKitButton.Custom>
           </div>
         )}
 
