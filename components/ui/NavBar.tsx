@@ -95,6 +95,7 @@ export default function NavBar() {
             <Link
               key={link.label}
               href={link.href}
+              prefetch={false}
               style={{
                 fontFamily: 'Space Mono, monospace',
                 fontSize: '0.75rem',
