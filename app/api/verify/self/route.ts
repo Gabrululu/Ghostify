@@ -11,7 +11,7 @@ const ENDPOINT = `${process.env.NEXT_PUBLIC_APP_URL}/api/verify/self`
 const verifier = new SelfBackendVerifier(
   SCOPE,
   ENDPOINT,
-  false, // false = mainnet docs, true = staging/mock passport
+  true, // true = staging/mock passport (accepts Self app mock IDs)
   AllIds,
   new DefaultConfigStore({
     minimumAge: 18,
