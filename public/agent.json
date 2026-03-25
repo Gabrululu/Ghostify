@@ -4,8 +4,8 @@
   "name": "Ghostify Agent",
   "description": "Autonomous agent that executes onchain transactions within human-defined spending limits, with private reasoning via Venice AI and ZK identity via Self Protocol.",
   "operator": {
-    "address": "PENDIENTE_TU_WALLET_ADDRESS",
-    "ens": "PENDIENTE_TU_ENS.eth"
+    "address": "0xB6E9874752Ad5370B42aA4be6593a1c86D15A82e",
+    "ens": "0xB6E9874752Ad5370B42aA4be6593a1c86D15A82e"
   },
   "capabilities": [
     "onchain_payments",
@@ -30,7 +30,7 @@
   },
   "onchain": {
     "network": "base-mainnet",
-    "registration_tx": "PENDIENTE_TX_HASH_REGISTRO_ERC8004",
+    "registration_tx": "0xf59dc5ccd2793b1a5178c38c13ef7c55f7713c67af234f752d9f532e87e8d877",
     "chain_id": 8453
   },
   "links": {

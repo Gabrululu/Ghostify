@@ -2,5 +2,17 @@
   "schema": "ERC-8004-log",
   "agent": "Ghostify Agent",
   "version": "1.0.0",
-  "entries": []
+  "entries": [
+    {
+      "id": "entry-001",
+      "timestamp": "2026-03-24T00:00:00Z",
+      "action": "ERC-8004 agent identity registered on Base Mainnet",
+      "tool": "erc-8004",
+      "amount_usd": null,
+      "tx_hash": "0xf59dc5ccd2793b1a5178c38c13ef7c55f7713c67af234f752d9f532e87e8d877",
+      "policy_check": "passed",
+      "private_inference": false,
+      "result": "success"
+    }
+  ]
 }

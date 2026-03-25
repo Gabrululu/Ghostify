@@ -159,8 +159,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ## Onchain artifacts
 
-- Agent registration tx: [view on Basescan](https://basescan.org/tx/TX_HASH)
-- Operator: `YOUR_ENS_OR_ADDRESS`
+- Agent registration tx: [view on Basescan](https://basescan.org/tx/0xf59dc5ccd2793b1a5178c38c13ef7c55f7713c67af234f752d9f532e87e8d877)
+- Operator: `0xB6E9874752Ad5370B42aA4be6593a1c86D15A82e`
 - Agent manifest: [`/public/agent.json`](./public/agent.json)
 - Execution log: [`/public/agent_log.json`](./public/agent_log.json)
 
