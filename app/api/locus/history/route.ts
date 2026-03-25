@@ -12,8 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     const transactions = await getLocusHistory(apiKey, limit)
     return NextResponse.json({ transactions })
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ error: message }, { status: 500 })
+  } catch {
+    return NextResponse.json({ transactions: [] })
   }
 }

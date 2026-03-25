@@ -64,6 +64,9 @@ async function locusGet<T>(path: string, apiKey: string): Promise<T> {
   const res = await fetch(`${LOCUS_API}${path}`, {
     headers: { Authorization: `Bearer ${apiKey}` },
   })
+  if (!res.ok) {
+    throw new Error(`Locus error ${res.status}: ${path}`)
+  }
   const json = await res.json()
   if (!json.success) {
     throw new Error(json.message ?? json.error ?? `Locus error ${res.status}`)
